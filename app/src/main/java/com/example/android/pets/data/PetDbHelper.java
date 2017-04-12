@@ -15,7 +15,7 @@ public class PetDbHelper extends SQLiteOpenHelper{
     // The name of the database
     private static final String DATABASE_NAME = "pets.db";
     // The current version of the database
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
 
     /**
@@ -39,8 +39,8 @@ public class PetDbHelper extends SQLiteOpenHelper{
                 + PetContract.PetEntry.TABLE_NAME + "("
                 + PetContract.PetEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + PetContract.PetEntry.COLUMN_NAME + " TEXT NOT NULL, "
-                + PetContract.PetEntry.COLUMN_BREED + " TEXT DEFAULT \"Unknown\", "
-                + PetContract.PetEntry.COLUMN_GENDER + " INTEGER DEFAULT 0, "
+                + PetContract.PetEntry.COLUMN_BREED + " TEXT NOT NULL DEFAULT \"Unknown\", "
+                + PetContract.PetEntry.COLUMN_GENDER + " INTEGER NOT NULL DEFAULT 0, "
                 + PetContract.PetEntry.COLUMN_WEIGHT + " INTEGER NOT NULL);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_TABLE_ENTRY);
