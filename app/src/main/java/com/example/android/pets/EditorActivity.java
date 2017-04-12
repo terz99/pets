@@ -15,10 +15,13 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,10 +30,19 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.example.android.pets.data.PetContract;
+import com.example.android.pets.data.PetDbHelper;
+
 /**
  * Allows user to create a new pet or edit an existing one.
  */
 public class EditorActivity extends AppCompatActivity {
+
+    // Database helper instance to help us get link from readable and writable sqlite database
+    private PetDbHelper mDbHelper;
+
+    // Log tag
+    private static final String TAG = EditorActivity.class.getSimpleName();
 
     /** EditText field to enter the pet's name */
     private EditText mNameEditText;
@@ -117,7 +129,7 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Do nothing for now
+                insertPet();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
@@ -130,5 +142,69 @@ public class EditorActivity extends AppCompatActivity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+    /**
+     * This method inserts a pet into the database
+     */
+    private void insertPet() {
+
+        // Get the name of the pet from the edit text
+        String name = mNameEditText.getText().toString().trim();
+        if(name.length() == 0){
+            // Return if there is nothing typed into the edit text
+            return;
+        }
+        // Get the breed of the pet from the edit text
+        String breed = mBreedEditText.getText().toString().trim();
+        if(breed.length() == 0){
+            // If there is nothing typed in the breed set it to null
+            breed = null;
+        }
+        // Get the gender from the spinner
+        String genderString = mGenderSpinner.getSelectedItem().toString();
+
+        // See to the appropriate gender constant
+        switch (genderString) {
+            case "Male":
+                mGender = PetContract.PetEntry.GENDER_MALE;
+                break;
+            case "Female":
+                mGender = PetContract.PetEntry.GENDER_FEMALE;
+                break;
+            default:
+                mGender = PetContract.PetEntry.GENDER_UNKNOWN;
+                break;
+        }
+
+        // Get the value from the weight edit text and TRY to parse it into integer
+        int weight;
+        try{
+            weight = Integer.parseInt(mWeightEditText.getText().toString().trim());
+        } catch (NumberFormatException nfe){
+            // If the typed value is not valid
+            Log.e(TAG, "Invalid weight format");
+            nfe.printStackTrace();
+            return;
+        }
+
+        // If all the values are valid then add them to the content values and then insert it
+        // to the database
+        ContentValues cv = new ContentValues();
+
+        cv.put(PetContract.PetEntry.COLUMN_NAME, name);
+        cv.put(PetContract.PetEntry.COLUMN_BREED, breed);
+        cv.put(PetContract.PetEntry.COLUMN_GENDER, mGender);
+        cv.put(PetContract.PetEntry.COLUMN_WEIGHT, weight);
+
+        mDbHelper = new PetDbHelper(this);
+
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        db.insert(PetContract.PetEntry.TABLE_NAME, null, cv);
+
+        // Return to the CatalogActivity
+        finish();
     }
 }

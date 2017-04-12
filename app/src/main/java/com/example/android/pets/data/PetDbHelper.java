@@ -3,6 +3,7 @@ package com.example.android.pets.data;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * Created by terz99 on 4/12/17.
@@ -10,6 +11,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class PetDbHelper extends SQLiteOpenHelper{
 
+    private static final String TAG = "PetDbHelper";
     // The name of the database
     private static final String DATABASE_NAME = "pets.db";
     // The current version of the database
@@ -42,6 +44,8 @@ public class PetDbHelper extends SQLiteOpenHelper{
                 + PetContract.PetEntry.COLUMN_WEIGHT + " INTEGER NOT NULL);";
 
         sqLiteDatabase.execSQL(SQL_CREATE_TABLE_ENTRY);
+
+        Log.i(TAG, "Database created");
     }
 
     /**
