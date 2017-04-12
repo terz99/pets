@@ -30,6 +30,8 @@ import android.widget.TextView;
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
 
+import static com.example.android.pets.data.PetContract.*;
+
 /**
  * Displays list of pets that were entered and stored in the app.
  */
@@ -73,12 +75,45 @@ public class CatalogActivity extends AppCompatActivity {
 
         // Perform this raw SQL query "SELECT * FROM pets"
         // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = db.rawQuery("SELECT * FROM " + PetContract.PetEntry.TABLE_NAME, null);
+        Cursor cursor = db.query(PetEntry.TABLE_NAME,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null);
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
             TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount());
+            displayView.setText("Number of rows in pets database table: " + cursor.getCount() +
+                    "\n\n");
+
+            // Display the schema of the table
+            displayView.append(PetEntry._ID + " - "
+                    + PetEntry.COLUMN_NAME + " - "
+                    + PetEntry.COLUMN_BREED + " - "
+                    + PetEntry.COLUMN_GENDER + " - "
+                    + PetEntry.COLUMN_WEIGHT + "\n\n");
+
+            // Iterate through the received data
+            while(cursor.moveToNext()){
+
+                // Get all the values from the current row
+                int id = cursor.getInt(cursor.getColumnIndex(PetEntry._ID));
+                String name = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_NAME));
+                String breed = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_BREED));
+                int gender = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_GENDER));
+                int weight = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_WEIGHT));
+
+                // Display all the values in the given order: id, name, breed, gender, weight
+                displayView.append(id + " - "
+                        + name + " - "
+                        + breed + " - "
+                        + gender + " - "
+                        + weight + "\n");
+            }
+
         } finally {
             // Always close the cursor when you're done reading from it. This releases all its
             // resources and makes it invalid.
@@ -124,15 +159,15 @@ public class CatalogActivity extends AppCompatActivity {
 
         ContentValues cv = new ContentValues();
 
-        cv.put(PetContract.PetEntry.COLUMN_NAME, "Toto");
-        cv.put(PetContract.PetEntry.COLUMN_BREED, "Terrier");
-        cv.put(PetContract.PetEntry.COLUMN_GENDER, PetContract.PetEntry.GENDER_MALE);
-        cv.put(PetContract.PetEntry.COLUMN_WEIGHT, 7);
+        cv.put(PetEntry.COLUMN_NAME, "Toto");
+        cv.put(PetEntry.COLUMN_BREED, "Terrier");
+        cv.put(PetEntry.COLUMN_GENDER, PetEntry.GENDER_MALE);
+        cv.put(PetEntry.COLUMN_WEIGHT, 7);
 
         mDbHelper = new PetDbHelper(this);
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
-        db.insert(PetContract.PetEntry.TABLE_NAME, null, cv);
+        db.insert(PetEntry.TABLE_NAME, null, cv);
 
         displayDatabaseInfo();
     }
