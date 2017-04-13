@@ -19,6 +19,7 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -26,6 +27,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
@@ -146,6 +148,9 @@ public class CatalogActivity extends AppCompatActivity {
      */
     private void insertPet() {
 
+        /**
+         * Create the content values instance and put the dummy data inside the content values
+         */
         ContentValues cv = new ContentValues();
 
         cv.put(PetEntry.COLUMN_NAME, "Toto");
@@ -153,11 +158,23 @@ public class CatalogActivity extends AppCompatActivity {
         cv.put(PetEntry.COLUMN_GENDER, PetEntry.GENDER_MALE);
         cv.put(PetEntry.COLUMN_WEIGHT, 7);
 
-        mDbHelper = new PetDbHelper(this);
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
-        db.insert(PetEntry.TABLE_NAME, null, cv);
+        // Insert the data using the content resolver which redirects the query to the
+        // PetProvider and then inserts the dummy data into the database and then return a
+        // not null URI instance to ensure that the insert method has executed successfully.
+        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, cv);
 
+        // If the uri is null then there was something wrong with the insertion action
+        // Otherwise, print a toast message indicating that the action was successful
+        if(uri == null){
+            Toast.makeText(CatalogActivity.this, R.string.dummy_insertion_fail, Toast.LENGTH_SHORT)
+                    .show();
+        } else {
+            Toast.makeText(CatalogActivity.this, R.string.dummy_insertion_success, Toast.LENGTH_SHORT)
+                    .show();
+        }
+
+        // Display the data on the the screen
         displayDatabaseInfo();
     }
 }

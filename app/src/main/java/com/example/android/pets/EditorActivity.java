@@ -17,6 +17,7 @@ package com.example.android.pets;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -29,9 +30,12 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetDbHelper;
+
+import static com.example.android.pets.data.PetContract.*;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -152,29 +156,26 @@ public class EditorActivity extends AppCompatActivity {
 
         // Get the name of the pet from the edit text
         String name = mNameEditText.getText().toString().trim();
-        if(name.length() == 0){
-            // Return if there is nothing typed into the edit text
-            return;
-        }
+
         // Get the breed of the pet from the edit text
         String breed = mBreedEditText.getText().toString().trim();
         if(breed.length() == 0){
-            // If there is nothing typed in the breed set it to null
-            breed = null;
+            breed = "Unknown";
         }
+
         // Get the gender from the spinner
         String genderString = mGenderSpinner.getSelectedItem().toString();
 
         // See to the appropriate gender constant
         switch (genderString) {
             case "Male":
-                mGender = PetContract.PetEntry.GENDER_MALE;
+                mGender = PetEntry.GENDER_MALE;
                 break;
             case "Female":
-                mGender = PetContract.PetEntry.GENDER_FEMALE;
+                mGender = PetEntry.GENDER_FEMALE;
                 break;
             default:
-                mGender = PetContract.PetEntry.GENDER_UNKNOWN;
+                mGender = PetEntry.GENDER_UNKNOWN;
                 break;
         }
 
@@ -184,8 +185,10 @@ public class EditorActivity extends AppCompatActivity {
             weight = Integer.parseInt(mWeightEditText.getText().toString().trim());
         } catch (NumberFormatException nfe){
             // If the typed value is not valid
-            Log.e(TAG, "Invalid weight format");
+            Log.e(TAG, getString(R.string.no_weight));
             nfe.printStackTrace();
+            Toast.makeText(EditorActivity.this, R.string.no_weight, Toast.LENGTH_SHORT)
+                    .show();
             return;
         }
 
@@ -193,18 +196,26 @@ public class EditorActivity extends AppCompatActivity {
         // to the database
         ContentValues cv = new ContentValues();
 
-        cv.put(PetContract.PetEntry.COLUMN_NAME, name);
-        cv.put(PetContract.PetEntry.COLUMN_BREED, breed);
-        cv.put(PetContract.PetEntry.COLUMN_GENDER, mGender);
-        cv.put(PetContract.PetEntry.COLUMN_WEIGHT, weight);
+        cv.put(PetEntry.COLUMN_NAME, name);
+        cv.put(PetEntry.COLUMN_BREED, breed);
+        cv.put(PetEntry.COLUMN_GENDER, mGender);
+        cv.put(PetEntry.COLUMN_WEIGHT, weight);
 
-        mDbHelper = new PetDbHelper(this);
+        // Insert the data using the content resolver which redirects the query to the
+        // PetProvider and then inserts the data into the database and then return a
+        // not null URI instance to ensure that the insert method has executed successfully.
+        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, cv);
 
-        SQLiteDatabase db = mDbHelper.getWritableDatabase();
-
-        db.insert(PetContract.PetEntry.TABLE_NAME, null, cv);
-
-        // Return to the CatalogActivity
-        finish();
+        // If the uri is null then there was something wrong with the insertion action
+        // Otherwise, print a toast message indicating that the action was successful
+        if(uri == null){
+            Toast.makeText(EditorActivity.this, R.string.pet_insertion_fail, Toast.LENGTH_SHORT)
+                    .show();
+        } else {
+            Toast.makeText(EditorActivity.this, R.string.pet_insertion_success, Toast.LENGTH_SHORT)
+                    .show();
+            // Return to the CatalogActivity
+            finish();
+        }
     }
 }

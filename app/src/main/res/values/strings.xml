@@ -14,6 +14,24 @@
     <!-- Name for the application [CHAR LIMIT=12] -->
     <string name="app_name">Pets</string>
 
+    <!-- String which is toasted when save fail occurs -->
+    <string name="pet_insertion_fail">Failed to save pet</string>
+
+    <!-- String which is toasted when dummy insertion fails -->
+    <string name="dummy_insertion_fail">Failed to save dummy pet</string>
+
+    <!-- String which is toasted when dummy insertion succeeds -->
+    <string name="dummy_insertion_success">Dummy saved</string>
+
+    <!-- String which is toasted when the pet has no name -->
+    <string name="no_name">The pet must have a name</string>
+
+    <!-- String which is toasted when the pet has no weight -->
+    <string name="no_weight">The pet must have weight</string>
+
+    <!-- String which is toasted when save success occurs -->
+    <string name="pet_insertion_success">Pet saved</string>
+
     <!-- Label for overflow menu option that inserts fake pet data into the app [CHAR LIMIT=20] -->
     <string name="action_insert_dummy_data">Insert Dummy Data</string>
 
@@ -58,4 +76,5 @@
 
     <!-- Label for dropdown menu option if the pet is female [CHAR LIMIT=20] -->
     <string name="gender_female">Female</string>
+    <string name="invalid_weight_value">Weight value is blank</string>
 </resources>
