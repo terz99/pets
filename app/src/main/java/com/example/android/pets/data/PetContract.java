@@ -5,6 +5,7 @@ package com.example.android.pets.data;
  */
 
 
+import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.BaseColumns;
 
@@ -30,6 +31,16 @@ public final class PetContract {
      * This class contains most of the constant variables, like column names and other constanst
      */
     public static class PetEntry implements BaseColumns {
+
+        // This string helps the getType() method in the content provider to return the type of the
+        // whole table
+        public static final String CONTENT_LIST_TYPE  = ContentResolver.CURSOR_DIR_BASE_TYPE
+                + "/" + CONTENT_AUTHORITY + "/" + PATH;
+
+        // This string helps the getType() method in the content provider to return the type of
+        // a single row
+        public static final String CONTENT_ITEM_TYPE = ContentResolver.CURSOR_ITEM_BASE_TYPE
+                + "/" + CONTENT_AUTHORITY + "/" + PATH + "/#";
 
         // The main URI of the database content
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH).build();

@@ -117,10 +117,28 @@ public class PetProvider extends ContentProvider{
         return retCursor;
     }
 
+    // Overridden method which helps the content provider to access the getType method of the
+    // database
     @Nullable
     @Override
     public String getType(@NonNull Uri uri) {
-        return null;
+
+        // Match the provided URI with the originals
+        final int match = sUriMatcher.match(uri);
+        switch (match){
+
+            // If the uri matches with the whole table URI then...
+            case PETS:
+                return PetEntry.CONTENT_LIST_TYPE;
+
+            // If the URI matches with the single row URI then...
+            case PET_ID:
+                return PetEntry.CONTENT_ITEM_TYPE;
+
+            // Otherwise throw an exception
+            default:
+                throw new IllegalArgumentException("Unknown uri " + uri.toString());
+        }
     }
 
     // Overriden method which helps the ContentProvider to access the insert method in the database
