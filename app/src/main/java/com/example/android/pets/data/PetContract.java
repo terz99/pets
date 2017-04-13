@@ -5,12 +5,21 @@ package com.example.android.pets.data;
  */
 
 
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 /**
  * This contract only provides constants which are used to operate with SQL queries
  */
 public final class PetContract {
+
+    // The authority of the content database
+    public static final String CONTENT_AUTHORITY = "com.example.android.pets";
+    // The base URI of the content database ( content://com.example.android.pets )
+    public static final Uri BASE_CONTENT_URI = Uri.parse("content://" + CONTENT_AUTHORITY);
+    // The path which is specific to the pets table in the content database
+    public static final String PATH = "pets";
+
 
     // Private constructor so there cannot be any instance from this class
     private PetContract(){
@@ -21,6 +30,9 @@ public final class PetContract {
      * This class contains most of the constant variables, like column names and other constanst
      */
     public static class PetEntry implements BaseColumns {
+
+        // The main URI of the database content
+        public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH).build();
 
         // Name of the table in the database
         public static final String TABLE_NAME = "pets";
