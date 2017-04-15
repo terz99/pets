@@ -113,6 +113,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         if(mUri == null){
             // Set "Add a Pet" title to the appbar
             setTitle(getString(R.string.add_a_pet_mode));
+            // If the activity is in add a pet mode then hide the delete options menu
+            invalidateOptionsMenu();
         } else {
             // Set "Edit Pet" title to the appbar
             setTitle(getString(R.string.edit_pet_mode));
@@ -134,6 +136,17 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mWeightEditText.setOnTouchListener(mTouchListener);
 
         setupSpinner();
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        // If this is a new pet, hide the "Delete" menu item.
+        if (mUri == null) {
+            MenuItem menuItem = menu.findItem(R.id.action_delete);
+            menuItem.setVisible(false);
+        }
+        return true;
     }
 
     /**
@@ -193,7 +206,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
-                // Do nothing for now
+                showDeleteConfirmationDialog();
                 return true;
             // Respond to a click on the "Up" arrow button in the app bar
             case android.R.id.home:
@@ -413,5 +426,59 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         // Show dialog that there are unsaved changes
         showUnsavedChangesDialog(discardButtonClickListener);
+    }
+
+    /**
+     * This method shows a pop-up dialog which shows the user whether or not should the selected pet
+     * be deleted
+     */
+    private void showDeleteConfirmationDialog(){
+
+        // Building the dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        // Set a dialog message
+        builder.setMessage(R.string.delete_dialog_msg);
+        // Set positive button function
+        builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                deletePet();
+            }
+        });
+        // Set negative buttion function
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+
+                if(dialogInterface != null){
+                    dialogInterface.dismiss();
+                }
+            }
+        });
+
+        // Show the dialog
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    /**
+     * This method deletes a pet from the database using the PetProvider via the getContentResolver
+     */
+    private void deletePet() {
+
+        // See how many rows where deleted in the database. Normally the number should be one since
+        // we are deleting only one animal
+        int rowsDeleted = getContentResolver().delete(mUri, null, null);
+
+        // If the number of animals deleted are greater than 0 then toast a message saying
+        // that the deletion was successful
+        if(rowsDeleted > 0){
+            Toast.makeText(this, R.string.deletion_successful, Toast.LENGTH_SHORT).show();
+            // Return to CatalogActivity
+            finish();
+        } else {
+            // Otherwise, toast a message that the deletion failed
+            Toast.makeText(this, R.string.deletion_fail, Toast.LENGTH_SHORT).show();
+        }
     }
 }
