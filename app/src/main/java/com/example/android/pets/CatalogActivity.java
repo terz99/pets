@@ -15,6 +15,7 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.database.Cursor;
@@ -22,10 +23,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,9 +43,13 @@ import static com.example.android.pets.data.PetContract.*;
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
-
-    // Member variable of the database helper class
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+    private static final int PET_LOADER_ID = 0;
+    // Member object of the pet list view adapter
+    private PetAdapter mPetAdapter;
+    // Member object of the pet list view
+    private ListView mPetListView;
+    // Member object of the database helper class
     private PetDbHelper mDbHelper;
 
     @Override
@@ -57,66 +67,33 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        displayDatabaseInfo();
+        // Get link from the pet list view
+        mPetListView = (ListView) findViewById(R.id.pet_list);
 
+        // Set empty view to the pet list view in case there is no data to be displayed
+        mPetListView.setEmptyView(findViewById(R.id.empty_view));
 
-    }
+        // Create a temporary null pet adapter attach it to the list view
+        mPetAdapter = new PetAdapter(this, null);
+        mPetListView.setAdapter(mPetAdapter);
 
+        mPetListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
 
-    /**
-     * Temporary helper method to display information in the onscreen TextView about the state of
-     * the pets database.
-     */
-    private void displayDatabaseInfo() {
-        // To access our database, we instantiate our subclass of SQLiteOpenHelper
-        // and pass the context, which is the current activity.
-        mDbHelper = new PetDbHelper(this);
-
-        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, null, null, null, null);
-        try {
-            // Display the number of rows in the Cursor (which reflects the number of rows in the
-            // pets table in the database).
-            TextView displayView = (TextView) findViewById(R.id.text_view_pet);
-            displayView.setText("Number of rows in pets database table: " + cursor.getCount() +
-                    "\n\n");
-
-            // Display the schema of the table
-            displayView.append(PetEntry._ID + " - "
-                    + PetEntry.COLUMN_NAME + " - "
-                    + PetEntry.COLUMN_BREED + " - "
-                    + PetEntry.COLUMN_GENDER + " - "
-                    + PetEntry.COLUMN_WEIGHT + "\n\n");
-
-            // Iterate through the received data
-            while(cursor.moveToNext()){
-
-                // Get all the values from the current row
-                int id = cursor.getInt(cursor.getColumnIndex(PetEntry._ID));
-                String name = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_NAME));
-                String breed = cursor.getString(cursor.getColumnIndex(PetEntry.COLUMN_BREED));
-                int gender = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_GENDER));
-                int weight = cursor.getInt(cursor.getColumnIndex(PetEntry.COLUMN_WEIGHT));
-
-                // Display all the values in the given order: id, name, breed, gender, weight
-                displayView.append(id + " - "
-                        + name + " - "
-                        + breed + " - "
-                        + gender + " - "
-                        + weight + "\n");
+                Intent editPetIntent = new Intent(CatalogActivity.this, EditorActivity.class);
+                editPetIntent.setData(ContentUris.withAppendedId(PetEntry.CONTENT_URI, id));
+                startActivity(editPetIntent);
             }
+        });
 
-        } finally {
-            // Always close the cursor when you're done reading from it. This releases all its
-            // resources and makes it invalid.
-            cursor.close();
-        }
+        // Start loading the data
+        getSupportLoaderManager().initLoader(PET_LOADER_ID, null, this);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
-        displayDatabaseInfo();
-    }
+
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -173,8 +150,41 @@ public class CatalogActivity extends AppCompatActivity {
             Toast.makeText(CatalogActivity.this, R.string.dummy_insertion_success, Toast.LENGTH_SHORT)
                     .show();
         }
+    }
 
-        // Display the data on the the screen
-        displayDatabaseInfo();
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+        switch (id){
+
+            case PET_LOADER_ID:
+
+                String[] projection = {
+                        PetEntry._ID,
+                        PetEntry.COLUMN_NAME,
+                        PetEntry.COLUMN_BREED
+                };
+
+                return new CursorLoader(this,
+                        PetEntry.CONTENT_URI,
+                        projection,
+                        null,
+                        null,
+                        null);
+
+            default:
+                throw new IllegalArgumentException("Unknown loader id " + id);
+        }
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        mPetAdapter.swapCursor(data);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mPetAdapter.swapCursor(null);
     }
 }

@@ -62,6 +62,6 @@ public final class PetContract {
         // Constant value for the female gender
         public static final int GENDER_FEMALE = 2;
         // Constant value for the unknown gender
-        public static final int GENDER_UNKNOWN = 3;
+        public static final int GENDER_UNKNOWN = 0;
     }
 }

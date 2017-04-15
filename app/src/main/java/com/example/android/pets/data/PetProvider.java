@@ -114,6 +114,8 @@ public class PetProvider extends ContentProvider{
                 throw new UnsupportedOperationException("Unknown uri: " + uri.toString());
         }
 
+        retCursor.setNotificationUri(getContext().getContentResolver(), uri);
+
         return retCursor;
     }
 
@@ -189,6 +191,9 @@ public class PetProvider extends ContentProvider{
             return null;
         }
 
+        // Notify the database of some changes
+        getContext().getContentResolver().notifyChange(uri, null);
+
         // Return the uri of the new valid row of the database
         return ContentUris.withAppendedId(uri, id);
     }
@@ -222,12 +227,17 @@ public class PetProvider extends ContentProvider{
         // Match the provided URI with the originals
         final int match = sUriMatcher.match(uri);
 
+        int rowsDeleted;
         switch (match){
 
             // If the query should be on the whole table then...
             case PETS:
-
-                return db.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = db.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+                // If some rows are deleted then notify the database
+                if(rowsDeleted > 0){
+                    getContext().getContentResolver().notifyChange(uri, null);
+                }
+                return rowsDeleted;
 
             // If the query is directed to a row with a specific id then assign that id to the
             // selection String and selectionArgs String array
@@ -235,7 +245,12 @@ public class PetProvider extends ContentProvider{
 
                 selection = PetEntry._ID + "=?";
                 selectionArgs = new String[]{ String.valueOf(ContentUris.parseId(uri)) };
-                return db.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = db.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
+                // If some rows are deleted then notify the database
+                if(rowsDeleted > 0){
+                    getContext().getContentResolver().notifyChange(uri, null);
+                }
+                return rowsDeleted;
 
             default:
                 // Otherwise throw an exception
@@ -297,7 +312,11 @@ public class PetProvider extends ContentProvider{
             SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
             retArg = db.update(PetEntry.TABLE_NAME, contentValues, selection, selectionArgs);
-            Toast.makeText(getContext(), "Updated " + retArg + " rows", Toast.LENGTH_SHORT).show();
+        }
+
+        // If some rows are updated then notify the database
+        if(retArg > 0){
+            getContext().getContentResolver().notifyChange(uri, null);
         }
 
         // Return the number of rows affected or return INVALID_DATA

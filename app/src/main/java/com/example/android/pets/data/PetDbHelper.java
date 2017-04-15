@@ -15,7 +15,7 @@ public class PetDbHelper extends SQLiteOpenHelper{
     // The name of the database
     private static final String DATABASE_NAME = "pets.db";
     // The current version of the database
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
 
     /**
